@@ -1,15 +1,22 @@
 import dispatcher
-import requests
+import utils
+import smtp_sender
 import tkinter as tk
 from tkinter import scrolledtext
 import threading
-import time
 import os
 import sys
 
 
 path_to_watch = ""
 THREAD = None
+EDITOR = None
+SRV = None
+USR = None
+PSW = None
+TO = None
+# TODO: use INTERVAL for dispatcher
+INTERVAL = None
 
 
 def set_path(p):
@@ -19,20 +26,22 @@ def set_path(p):
 
 def dispatch(t):
     global path_to_watch
-    global EDITOR
+    global EDITOR, THREAD
     try:
         dispatcher.start_dispatching(path_to_watch, t)
-    except BaseException as ex:
-        print("EXCEPTION OCCURED: " + str(ex) + "\n")
-        dispatch(t)
+    except BaseException as e:
+        print("EXCEPTION OCCURED: " + str(e) + "\n")
+        #dispatch(t)
+        raise e
 
 
 def money_loop():
+    global THREAD
     try:
         t = threading.currentThread()
         dispatch(t)
-    except:
-        pass
+    except BaseException as e:
+        raise e
 
 
 def make_dispatcher_close():
@@ -42,6 +51,7 @@ def make_dispatcher_close():
         os.remove(path_to_watch + "/ttttttttttttttt.tmp")
     except BaseException as ex:
         sys.stderr.write("Can not close dispatcher: " + str(ex) + "\n")
+        raise ex
 
 
 ###############################################
@@ -62,38 +72,47 @@ class TextRedirector(object):
 try:
     window = tk.Tk()
     window.title("FolderGod")
-    window.geometry('400x250')
+    window.geometry('600x400')
 
 
     def on_start():
-        global THREAD
-        global path_to_watch
-        if not THREAD:
-            print("Start dispatching...")
-            path_to_watch = editor.get()
-            info_thread = threading.Thread(target=money_loop, args=())
-            info_thread.start()
-            info_thread.do_disp = True
-            THREAD = info_thread
-            btn.config(text="stop", background="#ff0000")
-        else:
-            print("Stop dispatching...")
-            THREAD.do_disp = False
+        try:
+            global THREAD
+            global EDITOR
+            global path_to_watch
+            if not THREAD:
+                print("Start dispatching...", EDITOR.get())
+                smtp_sender.set_smtp_settings(USR.get(), PSW.get(), SRV.get(), TO.get())
+                path_to_watch = EDITOR.get()
+                info_thread = threading.Thread(target=money_loop, args=())
+                info_thread.start()
+                info_thread.do_disp = True
+                THREAD = info_thread
+                btn.config(text="STOP", background="#ff0000")
+            else:
+                print("Stop dispatching...")
+                THREAD.do_disp = False
+                THREAD = None
+                make_dispatcher_close()
+                btn.config(text="START", background="#00ff00")
+        except BaseException as e:
+            print("Stop dispatching with error...", e)
             THREAD = None
-            make_dispatcher_close()
             btn.config(text="start", background="#00ff00")
 
 
-    editor = tk.Entry(window, font=("Consolas", 10), text=path_to_watch, width=50)
-    editor.pack(side=tk.TOP)
-    editor.insert(0, path_to_watch)
-    EDITOR = editor
+    SRV = utils.make_labled_entry(window, 'Servername')
+    USR = utils.make_labled_entry(window, 'User')
+    PSW = utils.make_labled_entry(window, 'Password')
+    TO = utils.make_labled_entry(window, 'Send to')
+    INTERVAL = utils.make_labled_entry(window, 'Interval')
+    EDITOR = utils.make_labled_entry(window, 'Path to watch')
 
-    btn = tk.Button(window, text="start", background="#00ff00", command=on_start, pady=2, bd=4, relief=tk.GROOVE)
-    btn.pack()
+    btn = tk.Button(window, text="START", background="#00ff00", command=on_start, pady=2, bd=4, relief=tk.GROOVE)
+    btn.pack(expand=tk.YES, fill=tk.X)
 
-    shower = tk.scrolledtext.ScrolledText(window, width=100, height=60, font=("Consolas", 10))
-    shower.pack(side=tk.BOTTOM)
+    shower = tk.scrolledtext.ScrolledText(window, font=("Consolas", 10))
+    shower.pack(side=tk.BOTTOM, expand=tk.YES, fill=tk.X)
     shower.tag_configure("stderr", foreground="#ff0000")
     shower.tag_configure("stdout", foreground="#0000ff")
     sys.stdout = TextRedirector(shower, "stdout")
@@ -102,10 +121,12 @@ try:
     ###############################################
     def on_closing():
         global THREAD
-        if THREAD:
-            THREAD.do_disp = False
-            make_dispatcher_close()
-        window.destroy()
+        try:
+            if THREAD:
+                on_start()
+        finally:
+            window.destroy()
+            sys.exit(0)
 
     ###############################################
     def on_mouse_down(event):

@@ -12,12 +12,14 @@ servername = "servername or ip"
 
 def set_smtp_settings(us, psw, host, addrto):
     global user, password, servername, to_email
+    print(us, host, addrto)
     user = us
     password = psw
     servername = host
     to_email = addrto
 
 
+# TODO: test and make work with different smtp servers!
 def send_smtp_email(body_text):
     try:
         host = servername

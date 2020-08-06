@@ -2,8 +2,6 @@ import os
 import win32file
 import win32con
 import smtp_sender
-from tkinter import INSERT
-
 
 ACTIONS = {
     1: "Создан",
