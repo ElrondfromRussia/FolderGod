@@ -8,5 +8,5 @@ def make_labled_entry(tkwindow, name):
     ent.config(textvariable="")
     row.pack(side=tk.TOP, fill=tk.X)
     lab.pack(side=tk.LEFT)
-    ent.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.X)
+    ent.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.X, padx=2, pady=2)
     return ent

@@ -19,6 +19,21 @@ TO = None
 INTERVAL = None
 
 
+###############################################
+###############################################
+class TextRedirector(object):
+    def __init__(self, widget, tag="stdout"):
+        self.widget = widget
+        self.tag = tag
+
+    def write(self, str):
+        self.widget.configure(state="normal")
+        self.widget.insert("end", str, (self.tag,))
+        self.widget.configure(state="disabled")
+###############################################
+###############################################
+
+
 def set_path(p):
     global path_to_watch
     path_to_watch = p
@@ -54,27 +69,12 @@ def make_dispatcher_close():
         raise ex
 
 
-###############################################
-###############################################
-class TextRedirector(object):
-    def __init__(self, widget, tag="stdout"):
-        self.widget = widget
-        self.tag = tag
-
-    def write(self, str):
-        self.widget.configure(state="normal")
-        self.widget.insert("end", str, (self.tag,))
-        self.widget.configure(state="disabled")
-###############################################
-###############################################
-
-
 try:
     window = tk.Tk()
     window.title("FolderGod")
     window.geometry('600x400')
 
-
+    ###############################################
     def on_start():
         try:
             global THREAD
@@ -99,20 +99,20 @@ try:
             print("Stop dispatching with error...", e)
             THREAD = None
             btn.config(text="start", background="#00ff00")
-
+    ###############################################
 
     SRV = utils.make_labled_entry(window, 'Servername')
     USR = utils.make_labled_entry(window, 'User')
     PSW = utils.make_labled_entry(window, 'Password')
     TO = utils.make_labled_entry(window, 'Send to')
-    INTERVAL = utils.make_labled_entry(window, 'Interval')
+    # INTERVAL = utils.make_labled_entry(window, 'Interval')
     EDITOR = utils.make_labled_entry(window, 'Path to watch')
 
     btn = tk.Button(window, text="START", background="#00ff00", command=on_start, pady=2, bd=4, relief=tk.GROOVE)
-    btn.pack(expand=tk.YES, fill=tk.X)
+    btn.pack(expand=tk.YES, fill=tk.X, padx=2, pady=2)
 
     shower = tk.scrolledtext.ScrolledText(window, font=("Consolas", 10))
-    shower.pack(side=tk.BOTTOM, expand=tk.YES, fill=tk.X)
+    shower.pack(side=tk.BOTTOM, expand=tk.YES, fill=tk.BOTH, padx=2, pady=2)
     shower.tag_configure("stderr", foreground="#ff0000")
     shower.tag_configure("stdout", foreground="#0000ff")
     sys.stdout = TextRedirector(shower, "stdout")
@@ -138,9 +138,12 @@ try:
     def update_position(event):
         window.wm_geometry("+%d+%d" % (event.x_root + dif_x, event.y_root + dif_y))
 
+    ###############################################
 
-    #window.bind('<ButtonPress-1>', on_mouse_down)
-    #window.bind('<B1-Motion>', update_position)
+    # moving when clicked any place
+    window.bind('<ButtonPress-1>', on_mouse_down)
+    window.bind('<B1-Motion>', update_position)
+
     window.protocol("WM_DELETE_WINDOW", on_closing)
     window.mainloop()
 except BaseException as ex:
