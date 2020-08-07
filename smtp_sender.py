@@ -12,7 +12,6 @@ servername = "servername or ip"
 
 def set_smtp_settings(us, psw, host, addrto):
     global user, password, servername, to_email
-    print(us, host, addrto)
     user = us
     password = psw
     servername = host
@@ -33,9 +32,14 @@ def send_smtp_email(body_text):
         if body_text:
             msg.attach(MIMEText(body_text))
 
-        msg["To"] = to_email
+        to_list = []
+        for el in to_email.split(";"):
+            if el.strip() != "":
+                to_list.append(el.strip())
 
-        emails = [to_email]
+        msg["To"] = ', '.join(to_list)
+
+        emails = to_list
         server = smtplib.SMTP(host)
         server.login(user, password)
         server.sendmail(user, emails, msg.as_string())

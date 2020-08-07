@@ -7,7 +7,6 @@ import threading
 import os
 import sys
 
-
 path_to_watch = ""
 THREAD = None
 EDITOR = None
@@ -29,7 +28,10 @@ class TextRedirector(object):
     def write(self, str):
         self.widget.configure(state="normal")
         self.widget.insert("end", str, (self.tag,))
+        self.widget.yview("end")
         self.widget.configure(state="disabled")
+
+
 ###############################################
 ###############################################
 
@@ -46,7 +48,7 @@ def dispatch(t):
         dispatcher.start_dispatching(path_to_watch, t)
     except BaseException as e:
         print("EXCEPTION OCCURED: " + str(e) + "\n")
-        #dispatch(t)
+        # dispatch(t)
         raise e
 
 
@@ -83,6 +85,7 @@ try:
             if not THREAD:
                 print("Start dispatching...", EDITOR.get())
                 smtp_sender.set_smtp_settings(USR.get(), PSW.get(), SRV.get(), TO.get())
+                dispatcher.set_mailing_interval(INTERVAL.get())
                 path_to_watch = EDITOR.get()
                 info_thread = threading.Thread(target=money_loop, args=())
                 info_thread.start()
@@ -98,15 +101,17 @@ try:
         except BaseException as e:
             print("Stop dispatching with error...", e)
             THREAD = None
-            btn.config(text="start", background="#00ff00")
+            btn.config(text="START", background="#00ff00")
+
+
     ###############################################
 
-    SRV = utils.make_labled_entry(window, 'Servername')
-    USR = utils.make_labled_entry(window, 'User')
-    PSW = utils.make_labled_entry(window, 'Password')
-    TO = utils.make_labled_entry(window, 'Send to')
-    # INTERVAL = utils.make_labled_entry(window, 'Interval')
-    EDITOR = utils.make_labled_entry(window, 'Path to watch')
+    SRV = utils.make_labled_entry(window, 'Servername', 'Servername')
+    USR = utils.make_labled_entry(window, 'User', 'User')
+    PSW = utils.make_labled_entry(window, 'Password', 'Password')
+    TO = utils.make_labled_entry(window, 'Send to', 'Send to (supports list: a@bb.ru; b@bb.ru)')
+    INTERVAL = utils.make_labled_entry(window, 'Interval', 'Interval of mailing (min)')
+    EDITOR = utils.make_labled_entry(window, 'Path to watch', 'Path to watch')
 
     btn = tk.Button(window, text="START", background="#00ff00", command=on_start, pady=2, bd=4, relief=tk.GROOVE)
     btn.pack(expand=tk.YES, fill=tk.X, padx=2, pady=2)
@@ -138,11 +143,12 @@ try:
     def update_position(event):
         window.wm_geometry("+%d+%d" % (event.x_root + dif_x, event.y_root + dif_y))
 
+
     ###############################################
 
     # moving when clicked any place
-    window.bind('<ButtonPress-1>', on_mouse_down)
-    window.bind('<B1-Motion>', update_position)
+    # window.bind('<ButtonPress-1>', on_mouse_down)
+    # window.bind('<B1-Motion>', update_position)
 
     window.protocol("WM_DELETE_WINDOW", on_closing)
     window.mainloop()

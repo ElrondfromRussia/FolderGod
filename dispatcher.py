@@ -2,6 +2,7 @@ import os
 import win32file
 import win32con
 import smtp_sender
+import datetime
 
 ACTIONS = {
     1: "Создан",
@@ -10,8 +11,31 @@ ACTIONS = {
 }
 FILE_LIST_DIRECTORY = 0x0001
 
+MESSAGE_LIST = []
+SENDNOW = False
+TIMEOUT = 1  # min
+TIME = 0
+TIMENOW = 0
+
+
+def set_mailing_interval(interval):
+    global TIMEOUT
+    r = 1
+    try:
+        r = int(interval)
+        print("USING ", r, " min INTERVAL!")
+    except:
+        r = 1
+        print("USING DEFAULT INTERVAL (1min)!")
+    finally:
+        TIMEOUT = r
+
 
 def start_dispatching(path_to_watch, t):
+    global SENDNOW, TIMENOW
+    TIMENOW = datetime.datetime.now()
+    MESSAGE_LIST.clear()
+
     hDir = win32file.CreateFile(
         path_to_watch,
         FILE_LIST_DIRECTORY,
@@ -40,5 +64,17 @@ def start_dispatching(path_to_watch, t):
             if str(full_filename).endswith(".tmp") or act == "Unknown":
                 pass
             else:
-                print(full_filename, act)
-                smtp_sender.send_smtp_email(full_filename + " ::: " + ACTIONS.get(action, "Unknown"))
+                print(datetime.datetime.now(), ":::", full_filename, ":::", act)
+                diff = datetime.datetime.now().__sub__(TIMENOW).seconds
+                if diff > TIMEOUT * 60:
+                    SENDNOW = False
+                    TIMENOW = datetime.datetime.now()
+                    if len(MESSAGE_LIST) > 0:
+                        print(datetime.datetime.now(), "...отправка собранной статистики за ", TIMEOUT, "мин")
+                        smtp_sender.send_smtp_email('\n'.join(MESSAGE_LIST))
+                    MESSAGE_LIST.clear()
+                else:
+                    MESSAGE_LIST.append(
+                        datetime.datetime.now().__str__() + " ::: " + full_filename + " ::: " + ACTIONS.get(action,
+                                                                                                            "Unknown"))
+    MESSAGE_LIST.clear()
