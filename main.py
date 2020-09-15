@@ -31,6 +31,10 @@ class TextRedirector(object):
         self.widget.yview("end")
         self.widget.configure(state="disabled")
 
+    def flush(self):
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+
 
 ###############################################
 ###############################################
@@ -75,6 +79,7 @@ try:
     window = tk.Tk()
     window.title("FolderGod")
     window.geometry('600x400')
+
 
     ###############################################
     def on_start():
@@ -123,6 +128,7 @@ try:
     sys.stdout = TextRedirector(shower, "stdout")
     sys.stderr = TextRedirector(shower, "stderr")
 
+
     ###############################################
     def on_closing():
         global THREAD
@@ -131,13 +137,14 @@ try:
                 on_start()
         finally:
             window.destroy()
-            sys.exit(0)
+
 
     ###############################################
     def on_mouse_down(event):
         global dif_x, dif_y
         win_position = [int(coord) for coord in window.wm_geometry().split('+')[1:]]
         dif_x, dif_y = win_position[0] - event.x_root, win_position[1] - event.y_root
+
 
     ###############################################
     def update_position(event):
