@@ -113,7 +113,7 @@ try:
 
     SRV = utils.make_labled_entry(window, 'Servername', 'Servername')
     USR = utils.make_labled_entry(window, 'User', 'User')
-    PSW = utils.make_labled_entry(window, 'Password', 'Password')
+    PSW = utils.make_labled_entry(window, 'Password', 'Password', "*****")
     TO = utils.make_labled_entry(window, 'Send to', 'Send to (supports list: a@bb.ru; b@bb.ru)')
     INTERVAL = utils.make_labled_entry(window, 'Interval', 'Interval of mailing (min)')
     EDITOR = utils.make_labled_entry(window, 'Path to watch', 'Path to watch')

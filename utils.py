@@ -2,8 +2,8 @@ import tkinter as tk
 
 
 class EntryWithPlaceholder(tk.Entry):
-    def __init__(self, master=None, placeholder=None):
-        super().__init__(master)
+    def __init__(self, master=None, placeholder=None, show=None):
+        super().__init__(master, show=show)
 
         if placeholder is not None:
             self.placeholder = placeholder
@@ -29,10 +29,10 @@ class EntryWithPlaceholder(tk.Entry):
             self.put_placeholder()
 
 
-def make_labled_entry(tkwindow, name, temp=None):
+def make_labled_entry(tkwindow, name, temp=None, show=None):
     row = tk.Frame(tkwindow)
     lab = tk.Label(row, width=10, text=name)
-    ent = EntryWithPlaceholder(row, temp)
+    ent = EntryWithPlaceholder(row, temp, show)
     ent.config(textvariable="")
     row.pack(side=tk.TOP, fill=tk.X)
     lab.pack(side=tk.LEFT)
