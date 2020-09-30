@@ -17,6 +17,8 @@ TIMEOUT = 1  # min
 TIME = 0
 TIMENOW = 0
 
+FPATH = "test.txt"
+
 
 def set_mailing_interval(interval):
     global TIMEOUT
@@ -64,17 +66,19 @@ def start_dispatching(path_to_watch, t):
             if str(full_filename).endswith(".tmp") or act == "Unknown":
                 pass
             else:
-                print(datetime.datetime.now(), ":::", full_filename, ":::", act)
+                print(datetime.datetime.now(), "\t:::\t", full_filename, "\t:::\t", act)
                 diff = datetime.datetime.now().__sub__(TIMENOW).seconds
                 if diff > TIMEOUT * 60:
                     SENDNOW = False
                     TIMENOW = datetime.datetime.now()
                     if len(MESSAGE_LIST) > 0:
                         print(datetime.datetime.now(), "...отправка собранной статистики за ", TIMEOUT, "мин")
-                        smtp_sender.send_smtp_email('\n'.join(MESSAGE_LIST))
+                        with open(FPATH, 'w') as fl:
+                            fl.write('\n'.join(MESSAGE_LIST))
+                        smtp_sender.send_smtp_email(str(path_to_watch) + " : interval (min) : " + str(TIMEOUT), FPATH)
                     MESSAGE_LIST.clear()
                 else:
                     MESSAGE_LIST.append(
-                        datetime.datetime.now().__str__() + " ::: " + full_filename + " ::: " + ACTIONS.get(action,
-                                                                                                            "Unknown"))
+                        datetime.datetime.now().__str__() + "\t:::\t" + full_filename + "\t:::\t" +
+                        ACTIONS.get(action, "Unknown"))
     MESSAGE_LIST.clear()
