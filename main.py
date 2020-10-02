@@ -17,6 +17,10 @@ TO = None
 # TODO: use INTERVAL for dispatcher
 INTERVAL = None
 
+CRBT = None
+EDITBT = None
+DELETBT = None
+
 
 ###############################################
 ###############################################
@@ -80,33 +84,48 @@ try:
     window.title("FolderGod")
     window.geometry('600x400')
 
+    CREATED = tk.BooleanVar()
+    EDITED = tk.BooleanVar()
+    DELETED = tk.BooleanVar()
 
     ###############################################
     def on_start():
+        global CRBT, EDITBT, DELETBT
+        global THREAD
+        print(CREATED.get(), EDITED.get(), DELETED.get())
         try:
-            global THREAD
             global EDITOR
             global path_to_watch
             if not THREAD:
                 print("Start dispatching...", EDITOR.get())
                 smtp_sender.set_smtp_settings(USR.get(), PSW.get(), SRV.get(), TO.get())
                 dispatcher.set_mailing_interval(INTERVAL.get())
+                dispatcher.set_actions(CREATED.get(), EDITED.get(), DELETED.get())
                 path_to_watch = EDITOR.get()
                 info_thread = threading.Thread(target=money_loop, args=())
                 info_thread.start()
                 info_thread.do_disp = True
                 THREAD = info_thread
                 btn.config(text="STOP", background="#ff0000")
+                CRBT.config(state=tk.DISABLED)
+                EDITBT.config(state=tk.DISABLED)
+                DELETBT.config(state=tk.DISABLED)
             else:
                 print("Stop dispatching...")
                 THREAD.do_disp = False
                 THREAD = None
                 make_dispatcher_close()
                 btn.config(text="START", background="#00ff00")
+                CRBT.config(state=tk.ACTIVE)
+                EDITBT.config(state=tk.ACTIVE)
+                DELETBT.config(state=tk.ACTIVE)
         except BaseException as e:
             print("Stop dispatching with error...", e)
             THREAD = None
             btn.config(text="START", background="#00ff00")
+            CRBT.config(state=tk.ACTIVE)
+            EDITBT.config(state=tk.ACTIVE)
+            DELETBT.config(state=tk.ACTIVE)
 
 
     ###############################################
@@ -120,6 +139,15 @@ try:
 
     btn = tk.Button(window, text="START", background="#00ff00", command=on_start, pady=2, bd=4, relief=tk.GROOVE)
     btn.pack(expand=tk.YES, fill=tk.X, padx=2, pady=2)
+
+    row = tk.Frame(window)
+    CRBT = tk.Checkbutton(row, text="Created", variable=CREATED)
+    EDITBT = tk.Checkbutton(row, text="Edited", variable=EDITED)
+    DELETBT = tk.Checkbutton(row, text="Deleted", variable=DELETED)
+    row.pack(side=tk.TOP, fill=tk.X)
+    CRBT.pack(side=tk.LEFT, expand=tk.YES)
+    EDITBT.pack(side=tk.LEFT, fill=tk.X, expand=tk.YES)
+    DELETBT.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
 
     shower = tk.scrolledtext.ScrolledText(window, font=("Consolas", 10))
     shower.pack(side=tk.BOTTOM, expand=tk.YES, fill=tk.BOTH, padx=2, pady=2)

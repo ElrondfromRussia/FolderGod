@@ -9,6 +9,14 @@ ACTIONS = {
     2: "Удалён",
     3: "Изменён"
 }
+
+
+ACTIONSDO = {
+    "Создан": 0,
+    "Удалён": 0,
+    "Изменён": 0
+}
+
 FILE_LIST_DIRECTORY = 0x0001
 
 MESSAGE_LIST = []
@@ -33,8 +41,16 @@ def set_mailing_interval(interval):
         TIMEOUT = r
 
 
+def set_actions(cr, ed, dl):
+    global ACTIONSDO
+    ACTIONSDO["Создан"] = cr
+    ACTIONSDO["Изменён"] = ed
+    ACTIONSDO["Удалён"] = dl
+
+
 def start_dispatching(path_to_watch, t):
-    global SENDNOW, TIMENOW
+    global SENDNOW, TIMENOW, ACTIONSDO
+    print(ACTIONSDO)
     TIMENOW = datetime.datetime.now()
     MESSAGE_LIST.clear()
 
@@ -63,7 +79,8 @@ def start_dispatching(path_to_watch, t):
         for action, file in results:
             full_filename = os.path.join(path_to_watch, file)
             act = ACTIONS.get(action, "Unknown")
-            if str(full_filename).endswith(".tmp") or act == "Unknown":
+            do = ACTIONSDO.get(act)
+            if str(full_filename).endswith(".tmp") or act == "Unknown" or not do:
                 pass
             else:
                 print(datetime.datetime.now(), "\t:::\t", full_filename, "\t:::\t", act)
